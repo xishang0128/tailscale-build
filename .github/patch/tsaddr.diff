@@ -1,0 +1,31 @@
+--- ts/net/tsaddr/tsaddr.go	2024-07-01 22:01:00.006270250 +0800
++++ tailscale/net/tsaddr/tsaddr.go	2024-07-01 21:58:59.663443584 +0800
+@@ -8,6 +8,7 @@
+ 	"encoding/binary"
+ 	"errors"
+ 	"net/netip"
++	"os"
+ 	"slices"
+ 	"sync"
+ 
+@@ -26,12 +27,19 @@
+ 
+ var chromeOSRange oncePrefix
+ 
++func getrange() string {
++	if os.Getenv("TS_RANGE") != "" {
++		return os.Getenv("TS_RANGE")
++	}
++	return "100.64.0.0/10"
++}
++
+ // CGNATRange returns the Carrier Grade NAT address range that
+ // is the superset range that Tailscale assigns out of.
+ // See https://tailscale.com/s/cgnat
+ // Note that Tailscale does not assign out of the ChromeOSVMRange.
+ func CGNATRange() netip.Prefix {
+-	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, "100.64.0.0/10") })
++	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, getrange()) })
+ 	return cgnatRange.v
+ }
+ 
