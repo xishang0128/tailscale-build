@@ -1,3 +1,3 @@
 # tailscale-android-build
 
-Replace the official address range with 10.1.0.1/16 and support Android root operation
+Use system variable `TS_RANGE` to replace the official address range and support Android root operation
