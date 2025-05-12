@@ -51,7 +51,7 @@ jobs:
       uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
-        ndk-version: r26d
+        ndk-version: r29-beta1
 
     - name: Set NDK path
       if: ${{ matrix.jobs.goos == 'android' }}
@@ -69,7 +69,7 @@ jobs:
         GOMIPS: ${{matrix.jobs.mips}}
       run: |
         eval `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run ./cmd/mkversion`
-        curl https://raw.githubusercontent.com/xishang0128/tailscale-build/main/.github/patch/tsaddr.diff | patch -p1
+        curl https://raw.githubusercontent.com/xishang0128/tailscale-build/main/.github/patch/tsaddr.diff | patch -p2
         go build -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscaled
         mv tailscaled tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
         go build -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscale

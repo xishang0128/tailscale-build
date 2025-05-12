@@ -1,5 +1,6 @@
---- ts/net/tsaddr/tsaddr.go	2024-07-01 22:01:00.006270250 +0800
-+++ tailscale/net/tsaddr/tsaddr.go	2024-07-01 21:58:59.663443584 +0800
+diff --git a/tailscale/net/tsaddr/tsaddr.go b/tailscale/net/tsaddr/tsaddr.go
+--- a/tailscale/net/tsaddr/tsaddr.go
++++ b/tailscale/net/tsaddr/tsaddr.go
 @@ -8,6 +8,7 @@
  	"encoding/binary"
  	"errors"
@@ -28,4 +29,28 @@
 +	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, getrange()) })
  	return cgnatRange.v
  }
+ 
+diff --git a/tailscale/ipn/ipnlocal/ssh.go b/tailscale/ipn/ipnlocal/ssh.go
+--- a/tailscale/ipn/ipnlocal/ssh.go
++++ b/tailscale/ipn/ipnlocal/ssh.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ package ipnlocal
+ 
+diff --git a/tailscale/ipn/ipnlocal/ssh_stub.go b/tailscale/ipn/ipnlocal/ssh_stub.go
+--- a/tailscale/ipn/ipnlocal/ssh_stub.go
++++ b/tailscale/ipn/ipnlocal/ssh_stub.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build ios || android || (!linux && !darwin && !freebsd && !openbsd && !plan9)
++//go:build ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
+ 
+ package ipnlocal
  
