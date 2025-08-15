@@ -59,6 +59,7 @@ jobs:
         echo "CC=${{steps.setup-ndk.outputs.ndk-path}}/toolchains/llvm/prebuilt/linux-x86_64/bin/${{matrix.jobs.ndk}}-clang" >> $GITHUB_ENV
         echo "CGO_ENABLED=1" >> $GITHUB_ENV
         echo "BUILDTAG=" >> $GITHUB_ENV
+        echo "TAGS=-tags=ts_omit_systray" >> $GITHUB_ENV
 
     - name: Build core
       env:
@@ -70,9 +71,9 @@ jobs:
       run: |
         eval `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run ./cmd/mkversion`
         curl https://raw.githubusercontent.com/xishang0128/tailscale-build/main/.github/patch/tsaddr.diff | patch -p2
-        go build -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscaled
+        go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscaled
         mv tailscaled tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
-        go build -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscale
+        go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscale
         mv tailscale tailscale-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
 
     - name: Archive production artifacts
