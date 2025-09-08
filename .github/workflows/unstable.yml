@@ -59,7 +59,7 @@ jobs:
         echo "CC=${{steps.setup-ndk.outputs.ndk-path}}/toolchains/llvm/prebuilt/linux-x86_64/bin/${{matrix.jobs.ndk}}-clang" >> $GITHUB_ENV
         echo "CGO_ENABLED=1" >> $GITHUB_ENV
         echo "BUILDTAG=" >> $GITHUB_ENV
-        echo "TAGS=-tags=ts_omit_systray" >> $GITHUB_ENV
+        echo "TAGS=-tags=ts_omit_aws,ts_omit_bird,ts_omit_tap,ts_omit_kube,ts_omit_completion,ts_omit_ssh,ts_omit_wakeonlan,ts_omit_capture,ts_omit_relayserver,ts_omit_systray,ts_omit_taildrop,ts_omit_tpm,ts_omit_syspolicy,ts_omit_debugeventbus,ts_omit_webclient\"" >> $GITHUB_ENV
 
     - name: Build core
       env:

@@ -53,4 +53,28 @@ diff --git a/tailscale/ipn/ipnlocal/ssh_stub.go b/tailscale/ipn/ipnlocal/ssh_stu
 +//go:build ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
  
  package ipnlocal
+
+diff --git a/tailscale/tsd/tsd.go b/tailscale/tsd/tsd.go
+--- a/tailscale/tsd/tsd.go
++++ b/tailscale/tsd/tsd.go
+@@ -197,13 +197,14 @@ func (p *SubSystem[T]) Set(v T) {
+ 	if p.set {
+ 		var oldVal any = p.v
+ 		var newVal any = v
+-		if oldVal == newVal {
+-			// Allow setting to the same value.
+-			// Note we had to box them through "any" to force them to be comparable.
+-			// We can't set the type constraint T to be "comparable" because the interfaces
+-			// aren't comparable. (See https://github.com/golang/go/issues/52531 and
+-			// https://github.com/golang/go/issues/52614 for some background)
++		switch any(v).(type) {
++		case router.Router:
++			p.v = v
+ 			return
++		default:
++			if reflect.DeepEqual(oldVal, newVal) {
++				return
++			}
+ 		}
  
+ 		var z *T
