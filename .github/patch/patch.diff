@@ -1,0 +1,176 @@
+diff --git a/ipn/ipnlocal/ssh.go b/ipn/ipnlocal/ssh.go
+index e48b1f2f1..c1b477652 100644
+--- a/ipn/ipnlocal/ssh.go
++++ b/ipn/ipnlocal/ssh.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ package ipnlocal
+ 
+diff --git a/ipn/ipnlocal/ssh_stub.go b/ipn/ipnlocal/ssh_stub.go
+index d129084e4..401f42bf8 100644
+--- a/ipn/ipnlocal/ssh_stub.go
++++ b/ipn/ipnlocal/ssh_stub.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build ios || android || (!linux && !darwin && !freebsd && !openbsd && !plan9)
++//go:build ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
+ 
+ package ipnlocal
+ 
+diff --git a/net/netmon/netmon_linux.go b/net/netmon/netmon_linux.go
+index a1077c257..6b487ec67 100644
+--- a/net/netmon/netmon_linux.go
++++ b/net/netmon/netmon_linux.go
+@@ -1,8 +1,6 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build !android
+-
+ package netmon
+ 
+ import (
+diff --git a/net/netmon/netmon_polling.go b/net/netmon/netmon_polling.go
+index 3b5ef6fe9..9c0532b5a 100644
+--- a/net/netmon/netmon_polling.go
++++ b/net/netmon/netmon_polling.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (!linux && !freebsd && !windows && !darwin) || android
++//go:build !linux && !freebsd && !windows && !darwin
+ 
+ package netmon
+ 
+diff --git a/net/routetable/routetable_linux.go b/net/routetable/routetable_linux.go
+index 0b2cb305d..88dc8535a 100644
+--- a/net/routetable/routetable_linux.go
++++ b/net/routetable/routetable_linux.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build linux && !android
++//go:build linux
+ 
+ package routetable
+ 
+diff --git a/net/routetable/routetable_other.go b/net/routetable/routetable_other.go
+index e547ab0ac..35c83e374 100644
+--- a/net/routetable/routetable_other.go
++++ b/net/routetable/routetable_other.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build android || (!linux && !darwin && !freebsd)
++//go:build !linux && !darwin && !freebsd
+ 
+ package routetable
+ 
+diff --git a/net/tsaddr/tsaddr.go b/net/tsaddr/tsaddr.go
+index 06e6a26dd..fd5380dd6 100644
+--- a/net/tsaddr/tsaddr.go
++++ b/net/tsaddr/tsaddr.go
+@@ -8,6 +8,7 @@
+ 	"encoding/binary"
+ 	"errors"
+ 	"net/netip"
++	"os"
+ 	"slices"
+ 	"sync"
+ 
+@@ -26,12 +27,19 @@ func ChromeOSVMRange() netip.Prefix {
+ 
+ var chromeOSRange oncePrefix
+ 
++func getrange() string {
++	if os.Getenv("TS_RANGE") != "" {
++		return os.Getenv("TS_RANGE")
++	}
++	return "100.64.0.0/10"
++}
++
+ // CGNATRange returns the Carrier Grade NAT address range that
+ // is the superset range that Tailscale assigns out of.
+ // See https://tailscale.com/s/cgnat
+ // Note that Tailscale does not assign out of the ChromeOSVMRange.
+ func CGNATRange() netip.Prefix {
+-	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, "100.64.0.0/10") })
++	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, getrange()) })
+ 	return cgnatRange.v
+ }
+ 
+diff --git a/net/tstun/linkattrs_linux.go b/net/tstun/linkattrs_linux.go
+index 320385ba6..681e79269 100644
+--- a/net/tstun/linkattrs_linux.go
++++ b/net/tstun/linkattrs_linux.go
+@@ -1,8 +1,6 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build !android
+-
+ package tstun
+ 
+ import (
+diff --git a/net/tstun/linkattrs_notlinux.go b/net/tstun/linkattrs_notlinux.go
+index 77d227934..7a7b40fc2 100644
+--- a/net/tstun/linkattrs_notlinux.go
++++ b/net/tstun/linkattrs_notlinux.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build !linux || android
++//go:build !linux
+ 
+ package tstun
+ 
+diff --git a/tsd/tsd.go b/tsd/tsd.go
+index bd333bd31..0e150fd5f 100644
+--- a/tsd/tsd.go
++++ b/tsd/tsd.go
+@@ -197,13 +197,14 @@ func (p *SubSystem[T]) Set(v T) {
+ 	if p.set {
+ 		var oldVal any = p.v
+ 		var newVal any = v
+-		if oldVal == newVal {
+-			// Allow setting to the same value.
+-			// Note we had to box them through "any" to force them to be comparable.
+-			// We can't set the type constraint T to be "comparable" because the interfaces
+-			// aren't comparable. (See https://github.com/golang/go/issues/52531 and
+-			// https://github.com/golang/go/issues/52614 for some background)
++		switch any(v).(type) {
++		case router.Router:
++			p.v = v
+ 			return
++		default:
++			if reflect.DeepEqual(oldVal, newVal) {
++				return
++			}
+ 		}
+ 
+ 		var z *T
+ 
+diff --git a/wgengine/router/router_linux.go b/wgengine/router/router_linux.go
+index 2382e87cd..0a7063c63 100644
+--- a/wgengine/router/router_linux.go
++++ b/wgengine/router/router_linux.go
+@@ -1,8 +1,6 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build !android
+-
+ package router
+ 
+ import (
