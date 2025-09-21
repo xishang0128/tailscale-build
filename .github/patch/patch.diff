@@ -6,8 +6,8 @@ index e48b1f2f1..c1b477652 100644
  // Copyright (c) Tailscale Inc & AUTHORS
  // SPDX-License-Identifier: BSD-3-Clause
  
--//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
-+//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+-//go:build ((linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9) && !ts_omit_ssh
++//go:build (linux || (darwin && !ios) || freebsd || openbsd || plan9) && !ts_omit_ssh
  
  package ipnlocal
  
@@ -19,8 +19,8 @@ index d129084e4..401f42bf8 100644
  // Copyright (c) Tailscale Inc & AUTHORS
  // SPDX-License-Identifier: BSD-3-Clause
  
--//go:build ios || android || (!linux && !darwin && !freebsd && !openbsd && !plan9)
-+//go:build ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
+-//go:build ts_omit_ssh || ios || android || (!linux && !darwin && !freebsd && !openbsd && !plan9)
++//go:build ts_omit_ssh || ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
  
  package ipnlocal
  
