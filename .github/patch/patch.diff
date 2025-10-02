@@ -161,16 +161,16 @@ index bd333bd31..0e150fd5f 100644
  
  		var z *T
  
-diff --git a/wgengine/router/router_linux.go b/wgengine/router/router_linux.go
+diff --git a/wgengine/router/osrouter/router_linux.go b/wgengine/router/osrouter/router_linux.go
 index 2382e87cd..0a7063c63 100644
---- a/wgengine/router/router_linux.go
-+++ b/wgengine/router/router_linux.go
+--- a/wgengine/router/osrouter/router_linux.go
++++ b/wgengine/router/osrouter/router_linux.go
 @@ -1,8 +1,6 @@
  // Copyright (c) Tailscale Inc & AUTHORS
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build !android
 -
- package router
+ package osrouter
  
  import (

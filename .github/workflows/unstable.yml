@@ -71,7 +71,6 @@ jobs:
       run: |
         eval `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run ./cmd/mkversion`
         curl https://raw.githubusercontent.com/xishang0128/tailscale-build/main/.github/patch/patch.diff | patch -p1
-        rm wgengine/router/router_android.go
         go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscaled
         mv tailscaled tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
         go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscale
