@@ -109,32 +109,6 @@ index 06e6a26dd..fd5380dd6 100644
  	return cgnatRange.v
  }
  
-diff --git a/net/tstun/linkattrs_linux.go b/net/tstun/linkattrs_linux.go
-index 320385ba6..681e79269 100644
---- a/net/tstun/linkattrs_linux.go
-+++ b/net/tstun/linkattrs_linux.go
-@@ -1,8 +1,6 @@
- // Copyright (c) Tailscale Inc & AUTHORS
- // SPDX-License-Identifier: BSD-3-Clause
- 
--//go:build !android
--
- package tstun
- 
- import (
-diff --git a/net/tstun/linkattrs_notlinux.go b/net/tstun/linkattrs_notlinux.go
-index 77d227934..7a7b40fc2 100644
---- a/net/tstun/linkattrs_notlinux.go
-+++ b/net/tstun/linkattrs_notlinux.go
-@@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
- // SPDX-License-Identifier: BSD-3-Clause
- 
--//go:build !linux || android
-+//go:build !linux
- 
- package tstun
- 
 diff --git a/tsd/tsd.go b/tsd/tsd.go
 index bd333bd31..0e150fd5f 100644
 --- a/tsd/tsd.go
