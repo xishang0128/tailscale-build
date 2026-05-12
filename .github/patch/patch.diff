@@ -1,35 +1,22 @@
-diff --git a/ipn/ipnlocal/ssh.go b/ipn/ipnlocal/ssh.go
-index e48b1f2f1..c1b477652 100644
---- a/ipn/ipnlocal/ssh.go
-+++ b/ipn/ipnlocal/ssh.go
+diff --git a/feature/ssh/ssh.go b/feature/ssh/ssh.go
+index bd22005..6471811 100644
+--- a/feature/ssh/ssh.go
++++ b/feature/ssh/ssh.go
 @@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build ((linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9) && !ts_omit_ssh
 +//go:build (linux || (darwin && !ios) || freebsd || openbsd || plan9) && !ts_omit_ssh
  
- package ipnlocal
- 
-diff --git a/ipn/ipnlocal/ssh_stub.go b/ipn/ipnlocal/ssh_stub.go
-index d129084e4..401f42bf8 100644
---- a/ipn/ipnlocal/ssh_stub.go
-+++ b/ipn/ipnlocal/ssh_stub.go
-@@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
- // SPDX-License-Identifier: BSD-3-Clause
- 
--//go:build ts_omit_ssh || ios || android || (!linux && !darwin && !freebsd && !openbsd && !plan9)
-+//go:build ts_omit_ssh || ios || (!linux && !darwin && !freebsd && !openbsd && !plan9)
- 
- package ipnlocal
- 
+ // Package ssh registers the Tailscale SSH feature, including host key
+ // management and the SSH server.
 diff --git a/net/netmon/netmon_linux.go b/net/netmon/netmon_linux.go
-index a1077c257..6b487ec67 100644
+index b7d87f9..317570d 100644
 --- a/net/netmon/netmon_linux.go
 +++ b/net/netmon/netmon_linux.go
 @@ -1,8 +1,6 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build !android
@@ -38,11 +25,11 @@ index a1077c257..6b487ec67 100644
  
  import (
 diff --git a/net/netmon/netmon_polling.go b/net/netmon/netmon_polling.go
-index 3b5ef6fe9..9c0532b5a 100644
+index bdeb430..c5f7989 100644
 --- a/net/netmon/netmon_polling.go
 +++ b/net/netmon/netmon_polling.go
 @@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build (!linux && !freebsd && !windows && !darwin) || android
@@ -51,11 +38,11 @@ index 3b5ef6fe9..9c0532b5a 100644
  package netmon
  
 diff --git a/net/routetable/routetable_linux.go b/net/routetable/routetable_linux.go
-index 0b2cb305d..88dc8535a 100644
+index 479aa8f..6337b61 100644
 --- a/net/routetable/routetable_linux.go
 +++ b/net/routetable/routetable_linux.go
 @@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build linux && !android
@@ -64,20 +51,20 @@ index 0b2cb305d..88dc8535a 100644
  package routetable
  
 diff --git a/net/routetable/routetable_other.go b/net/routetable/routetable_other.go
-index e547ab0ac..35c83e374 100644
+index 25d008c..64cd9be 100644
 --- a/net/routetable/routetable_other.go
 +++ b/net/routetable/routetable_other.go
 @@ -1,7 +1,7 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
--//go:build android || (!linux && !darwin && !freebsd)
-+//go:build !linux && !darwin && !freebsd
+-//go:build android || (!linux && !darwin && !freebsd && !openbsd)
++//go:build !linux && !darwin && !freebsd && !openbsd
  
  package routetable
  
 diff --git a/net/tsaddr/tsaddr.go b/net/tsaddr/tsaddr.go
-index 06e6a26dd..fd5380dd6 100644
+index 1eac9eb..b79d679 100644
 --- a/net/tsaddr/tsaddr.go
 +++ b/net/tsaddr/tsaddr.go
 @@ -8,6 +8,7 @@
@@ -92,9 +79,9 @@ index 06e6a26dd..fd5380dd6 100644
  
  var chromeOSRange oncePrefix
  
-+func getrange() string {
-+	if os.Getenv("TS_RANGE") != "" {
-+		return os.Getenv("TS_RANGE")
++func cgnatRangeCIDR() string {
++	if v := os.Getenv("TS_RANGE"); v != "" {
++		return v
 +	}
 +	return "100.64.0.0/10"
 +}
@@ -105,15 +92,93 @@ index 06e6a26dd..fd5380dd6 100644
  // Note that Tailscale does not assign out of the ChromeOSVMRange.
  func CGNATRange() netip.Prefix {
 -	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, "100.64.0.0/10") })
-+	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, getrange()) })
++	cgnatRange.Do(func() { mustPrefix(&cgnatRange.v, cgnatRangeCIDR()) })
  	return cgnatRange.v
  }
  
+diff --git a/ssh/tailssh/c2n.go b/ssh/tailssh/c2n.go
+index 621be74..821e4c2 100644
+--- a/ssh/tailssh/c2n.go
++++ b/ssh/tailssh/c2n.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & contributors
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ package tailssh
+ 
+diff --git a/ssh/tailssh/hostkeys.go b/ssh/tailssh/hostkeys.go
+index 8046a02..358e6dd 100644
+--- a/ssh/tailssh/hostkeys.go
++++ b/ssh/tailssh/hostkeys.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & contributors
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ package tailssh
+ 
+diff --git a/ssh/tailssh/incubator.go b/ssh/tailssh/incubator.go
+index 48c65e8..ed07903 100644
+--- a/ssh/tailssh/incubator.go
++++ b/ssh/tailssh/incubator.go
+@@ -7,7 +7,7 @@
+ // and groups to the specified `--uid`, `--gid` and `--groups`, and
+ // then launches the requested `--cmd`.
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd
++//go:build linux || (darwin && !ios) || freebsd || openbsd
+ 
+ package tailssh
+ 
+diff --git a/ssh/tailssh/incubator_linux.go b/ssh/tailssh/incubator_linux.go
+index cff4616..3539ffc 100644
+--- a/ssh/tailssh/incubator_linux.go
++++ b/ssh/tailssh/incubator_linux.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & contributors
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build linux && !android
++//go:build linux
+ 
+ package tailssh
+ 
+diff --git a/ssh/tailssh/tailssh.go b/ssh/tailssh/tailssh.go
+index e01f78e..72eb473 100644
+--- a/ssh/tailssh/tailssh.go
++++ b/ssh/tailssh/tailssh.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & contributors
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ // Package tailssh is an SSH server integrated into Tailscale.
+ package tailssh
+diff --git a/ssh/tailssh/user.go b/ssh/tailssh/user.go
+index 0d2bf31..022fec6 100644
+--- a/ssh/tailssh/user.go
++++ b/ssh/tailssh/user.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & contributors
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
++//go:build linux || (darwin && !ios) || freebsd || openbsd || plan9
+ 
+ package tailssh
+ 
 diff --git a/tsd/tsd.go b/tsd/tsd.go
-index bd333bd31..0e150fd5f 100644
+index 615c9c0..86397f8 100644
 --- a/tsd/tsd.go
 +++ b/tsd/tsd.go
-@@ -197,13 +197,14 @@ func (p *SubSystem[T]) Set(v T) {
+@@ -224,13 +224,14 @@ func (p *SubSystem[T]) Set(v T) {
  	if p.set {
  		var oldVal any = p.v
  		var newVal any = v
@@ -133,14 +198,13 @@ index bd333bd31..0e150fd5f 100644
 +			}
  		}
  
- 		var z *T
- 
+ 		panic(fmt.Sprintf("%v is already set", reflect.TypeFor[T]().String()))
 diff --git a/wgengine/router/osrouter/router_linux.go b/wgengine/router/osrouter/router_linux.go
-index 2382e87cd..0a7063c63 100644
+index 41a2a7b..748dbf4 100644
 --- a/wgengine/router/osrouter/router_linux.go
 +++ b/wgengine/router/osrouter/router_linux.go
 @@ -1,8 +1,6 @@
- // Copyright (c) Tailscale Inc & AUTHORS
+ // Copyright (c) Tailscale Inc & contributors
  // SPDX-License-Identifier: BSD-3-Clause
  
 -//go:build !android
