@@ -32,8 +32,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - uses: actions/checkout@v4
       with:
         repository: tailscale/tailscale
+        path: tailscale
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -62,6 +65,7 @@ jobs:
         echo "TAGS=-tags=ts_omit_aws,ts_omit_bird,ts_omit_tap,ts_omit_kube,ts_omit_completion,ts_omit_ssh,ts_omit_wakeonlan,ts_omit_capture,ts_omit_relayserver,ts_omit_systray,ts_omit_taildrop,ts_omit_tpm,ts_omit_syspolicy,ts_omit_debugeventbus,ts_omit_webclient\"" >> $GITHUB_ENV
 
     - name: Build core
+      working-directory: tailscale
       env:
         GOOS: ${{matrix.jobs.goos}}
         GOARCH: ${{matrix.jobs.goarch}}
@@ -70,7 +74,7 @@ jobs:
         GOMIPS: ${{matrix.jobs.mips}}
       run: |
         eval `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run ./cmd/mkversion`
-        curl https://raw.githubusercontent.com/xishang0128/tailscale-build/main/.github/patch/patch.diff | patch -p1
+        patch -p1 < ../.github/patch/patch.diff
         go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscaled
         mv tailscaled tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
         go build ${TAGS} -v -trimpath -ldflags "${BUILDTAG} -X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT} -w -s -buildid=" ./cmd/tailscale
@@ -81,8 +85,8 @@ jobs:
       with:
         name: "${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}"
         path: |
-          tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
-          tailscale-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
+          tailscale/tailscaled-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
+          tailscale/tailscale-${{ matrix.jobs.goos }}-${{ matrix.jobs.output }}
 
   Upload-Prerelease:
     permissions: write-all
